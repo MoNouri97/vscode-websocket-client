@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { HelloWorldPanel } from './HelloWorldPanel';
+import { SidebarProvider } from './SidebarProvider';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -12,6 +12,13 @@ export function activate(context: vscode.ExtensionContext) {
 		'Congratulations, your extension "websocket-client" is now active!',
 	);
 
+	  const sidebarProvider = new SidebarProvider(context.extensionUri);
+		context.subscriptions.push(
+			vscode.window.registerWebviewViewProvider(
+				'websocket-sidebar',
+				sidebarProvider,
+			),
+		);
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
@@ -19,13 +26,19 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('websocket-client.helloWorld', () => {
 			// The code you place here will be executed every time your command is executed
-			HelloWorldPanel.createOrShow(context.extensionUri);
 			// Display a message box to the user
-			// vscode.window.showInformationMessage('Hello World');
+			vscode.window.showInformationMessage('Hello World');
 		}),
-		vscode.commands.registerCommand('websocket-client.refresh', () => {
-			HelloWorldPanel.kill();
-			HelloWorldPanel.createOrShow(context.extensionUri);
+		vscode.commands.registerCommand('websocket-client.refresh', async () => {
+			await vscode.commands.executeCommand('workbench.action.closeSidebar');
+			await vscode.commands.executeCommand(
+				'workbench.view.extension.websocket-sidebar-view',
+			);
+			setTimeout(async () => {
+				await vscode.commands.executeCommand(
+					'workbench.action.webview.openDeveloperTools',
+				);
+			}, 500);
 		}),
 	);
 }
