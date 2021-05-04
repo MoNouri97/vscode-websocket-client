@@ -1,79 +1,123 @@
 <script lang="ts">
 	import { Client } from '@stomp/stompjs';
 	import SockJs from 'sockjs-client';
+	import Log from './Log.svelte';
 
-	let url = 'wss://echo.websocket.org';
+	let url = 'http://localhost:8080/chat';
+	// let url = 'wss://echo.websocket.org';
 	let status: 'not-connected' | 'connected' | 'error' = 'not-connected';
 	$: connected = status === 'connected';
-	let stompClient: Client;
 	let toSend = '';
 	let messages: { msg: string; sent: boolean }[] = [];
-	// console.log({socket})
-	const handleConnect = () => {
+
+	let useSockJs = true;
+	let stompClient: Client;
+	let socket: WebSocket;
+	// sockJS
+	let chatUrl = '/app/chat/123';
+	let subscribeUrl = '/topic/messages/123';
+
+	const connectSockJs = () => {
 		stompClient = new Client({
 			webSocketFactory: () => {
-				return new SockJs(url);
+				try {
+					return new SockJs(url);
+				} catch (error) {
+					tsVscode.postMessage({ type: 'onError', value: error.message });
+				}
 			},
 		});
-		stompClient.onStompError = () => {
-			console.log('socket error');
+		stompClient.onStompError = e => {
+			tsVscode.postMessage({ type: 'onError', value: 'STOMP Error' });
 		};
 
 		stompClient.onConnect = () => {
 			stompClient.subscribe(
-				'/topic/public',
+				subscribeUrl,
 				// `/user/${user.username}/queue/messages`,
 				payload => {
-					messages = [...messages, { msg: payload.body, sent: false }];
+					messages = [{ msg: payload.body, sent: false }, ...messages];
 				},
 			);
-			connected = true;
 			status = 'connected';
 		};
 
 		stompClient.activate();
+	};
 
-		// socket = new WebSocket(url);
-		// socket.onopen = e => {
-		// 	connected = true;
-		// 	status = 'connected';
-		// };
+	const connectWebSocket = () => {
+		try {
+			socket = new WebSocket(url);
+		} catch (error) {
+			tsVscode.postMessage({ type: 'onError', value: error.message });
+		}
+		socket.onopen = e => {
+			status = 'connected';
+		};
+		socket.onerror = e => {
+			status = 'error';
+		};
+		socket.onmessage = e => {
+			messages = [{ msg: e.data, sent: false }, ...messages];
+		};
+	};
 
-		// socket.onerror = e => {
-		// 	connected = false;
-		// 	status = 'error';
-		// };
-
-		// socket.onmessage = e => {
-		// 	messages = [...messages, { msg: e.data, sent: false }];
-		// };
+	const handleConnect = () => {
+		if (useSockJs) {
+			return connectSockJs();
+		}
+		connectWebSocket();
 	};
 
 	const handleDisconnect = () => {
-		// socket?.close();
-		stompClient.deactivate();
 		status = 'not-connected';
+		if (!useSockJs) {
+			socket?.close();
+			return;
+		}
+		stompClient.deactivate();
 	};
 
 	const handleSend = () => {
-		// socket?.send(toSend);
-		stompClient.publish({
-			destination: '/topic/public',
-			body: toSend,
-		});
-		messages = [...messages, { msg: toSend, sent: true }];
+		if (!useSockJs) {
+			socket?.send(toSend);
+		} else {
+			stompClient.publish({
+				destination: chatUrl,
+				body: toSend,
+			});
+		}
+		messages = [{ msg: toSend, sent: true }, ...messages];
 		toSend = '';
+	};
+	const handleClear = () => {
+		messages = [];
 	};
 </script>
 
 <template>
-	<h1>WebSocket Client</h1>
 	<div>
-		<p class="label">URL:</p>
-		<input bind:value={url} placeholder="wss://echo.websocket.org" />
-
+		<label class="container">
+			<input type="checkbox" bind:checked={useSockJs} />
+			Use SockJs-client + STOMPjs
+		</label>
+		<label class="label">
+			URL:
+			<input bind:value={url} disabled={connected} />
+		</label>
+		{#if useSockJs}
+			<p>STOMP info :</p>
+			<label>
+				subscribe Path
+				<input type="text" bind:value={subscribeUrl} disabled={connected} />
+			</label>
+			<label>
+				Chat Path
+				<input type="text" bind:value={chatUrl} disabled={connected} />
+			</label>
+		{/if}
 		{#if status === 'connected'}
-			<button on:click={handleDisconnect}>Disonnect</button>
+			<button on:click={handleDisconnect}>Disconnect</button>
 		{:else}
 			<button on:click={handleConnect}>Connect</button>
 		{/if}
@@ -81,32 +125,33 @@
 		<p class={status}>status: {status}</p>
 
 		<p class="label">Message:</p>
-		<input bind:value={toSend} />
-		<button on:click={handleSend}>Send</button>
+		<textarea bind:value={toSend} disabled={!connected} />
+		<button on:click={handleSend} disabled={!connected}>Send</button>
 
-		<p class="label">Log:</p>
-		<div class="messages">
-			{#each messages as { msg, sent } (msg + sent)}
-				<p class:sent>
-					{`${sent ? 'SENT:' : 'RECIEVED'}`}
-				</p>
-				<pre>
-					{msg}
-				</pre>
-				<!-- </p> -->
-			{/each}
-		</div>
+		<button on:click={handleClear}>Clear Log</button>
+		<Log {messages} />
 	</div>
 </template>
 
 <style>
-	h1 {
-		font-weight: 900;
+	.container {
+		display: flex;
+		align-items: center;
+	}
+	.container input {
+		width: 20px;
+		height: 20px;
+		position: relative;
+		top: 5px;
+		margin-right: 5px;
 	}
 	div * {
 		margin-bottom: 1rem;
 	}
 
+	*:disabled {
+		opacity: 0.5;
+	}
 	.connected {
 		color: greenyellow;
 	}
@@ -115,18 +160,5 @@
 	}
 	.error {
 		color: tomato;
-	}
-	.messages {
-		overflow-y: scroll;
-	}
-	.messages p {
-		padding: 1rem;
-		margin-bottom: 0;
-	}
-	.messages p:not(.sent) {
-		background: rgba(128, 128, 128, 0.1);
-	}
-	.sent {
-		background: rgba(128, 128, 128, 0.3);
 	}
 </style>
