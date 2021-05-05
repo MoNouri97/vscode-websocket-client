@@ -1,8 +1,13 @@
 {
+	"publisher": "mohamed-nouri",
+	"repository": {
+		"url": "https://github.com/MoNouri97/websocket-client"
+	},
+	"icon": "images/icon.jpg",
 	"name": "websocket-client",
 	"displayName": "WebSocket Client",
-	"description": "testing websocket connection using vscode",
-	"version": "0.0.1",
+	"description": "Testing Websocket Connections Using VsCode",
+	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.55.0"
 	},
