@@ -8,7 +8,9 @@ import svelte from 'rollup-plugin-svelte';
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
 
+// const production = true;
 const production = !process.env.ROLLUP_WATCH;
+console.log({ production });
 
 export default fs
 	.readdirSync(path.join(__dirname, 'web-views', 'pages'))

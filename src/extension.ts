@@ -8,39 +8,37 @@ import { SidebarProvider } from './SidebarProvider';
 export function activate(context: vscode.ExtensionContext) {
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
 	// This line of code will only be executed once when your extension is activated
-	console.log(
-		'Congratulations, your extension "websocket-client" is now active!',
-	);
+	console.log('"websocket-client" is now active!');
 
-	  const sidebarProvider = new SidebarProvider(context.extensionUri);
-		context.subscriptions.push(
-			vscode.window.registerWebviewViewProvider(
-				'websocket-sidebar',
-				sidebarProvider,
-			),
-		);
+	const sidebarProvider = new SidebarProvider(context.extensionUri);
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(
+			'websocket-sidebar',
+			sidebarProvider,
+		),
+	);
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
 	// The commandId parameter must match the command field in package.json
 
-	context.subscriptions.push(
-		vscode.commands.registerCommand('websocket-client.helloWorld', () => {
-			// The code you place here will be executed every time your command is executed
-			// Display a message box to the user
-			vscode.window.showInformationMessage('Hello World');
-		}),
-		vscode.commands.registerCommand('websocket-client.refresh', async () => {
-			await vscode.commands.executeCommand('workbench.action.closeSidebar');
-			await vscode.commands.executeCommand(
-				'workbench.view.extension.websocket-sidebar-view',
-			);
-			setTimeout(async () => {
-				await vscode.commands.executeCommand(
-					'workbench.action.webview.openDeveloperTools',
-				);
-			}, 500);
-		}),
-	);
+	// context.subscriptions.push(
+	// 	vscode.commands.registerCommand('websocket-client.helloWorld', () => {
+	// 		// The code you place here will be executed every time your command is executed
+	// 		// Display a message box to the user
+	// 		vscode.window.showInformationMessage('Hello World');
+	// 	}),
+	// 	vscode.commands.registerCommand('websocket-client.refresh', async () => {
+	// 		await vscode.commands.executeCommand('workbench.action.closeSidebar');
+	// 		await vscode.commands.executeCommand(
+	// 			'workbench.view.extension.websocket-sidebar-view',
+	// 		);
+	// 		setTimeout(async () => {
+	// 			await vscode.commands.executeCommand(
+	// 				'workbench.action.webview.openDeveloperTools',
+	// 			);
+	// 		}, 500);
+	// 	}),
+	// );
 }
 
 // this method is called when your extension is deactivated

@@ -6,8 +6,8 @@
 	"icon": "images/icon.jpg",
 	"name": "websocket-client",
 	"displayName": "WebSocket Client",
-	"description": "Testing Websocket Connections Using VsCode",
-	"version": "1.1.0",
+	"description": "Testing Websocket (SockJs + stompjs) Connections Using VsCode",
+	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.55.0"
 	},
@@ -15,8 +15,6 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:websocket-client.helloWorld",
-		"onCommand:websocket-client.refresh",
 		"onView:websocket-sidebar"
 	],
 	"main": "./dist/extension.js",
@@ -26,7 +24,7 @@
 				{
 					"id": "websocket-sidebar-view",
 					"title": "WebSocket",
-					"icon": "media/icon.svg"
+					"icon": "./media/icon.svg"
 				}
 			]
 		},
@@ -36,34 +34,17 @@
 					"type": "webview",
 					"id": "websocket-sidebar",
 					"name": "WebSocket",
-					"icon": "media/icon.svg",
+					"icon": "./media/icon.svg",
 					"contextualTitle": "WebSocket"
 				}
 			]
-		},
-		"commands": [
-			{
-				"command": "websocket-client.helloWorld",
-				"title": "Hello World",
-				"category": "WebSocket"
-			},
-			{
-				"command": "websocket-client.refresh",
-				"title": "Refresh",
-				"category": "WebSocket"
-			}
-		]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",
-		"compile": "webpack",
+		"compile": "rollup -c && webpack --mode production",
 		"watch": "concurrently \"rollup -c -w\" \"webpack --mode development --watch\"",
-		"package": "webpack --mode production --devtool hidden-source-map",
-		"test-compile": "tsc -p ./",
-		"test-watch": "tsc -watch -p ./",
-		"pretest": "npm run test-compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
+		"package": "rollup -c && webpack --mode production --devtool hidden-source-map"
 	},
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^18.0.0",
