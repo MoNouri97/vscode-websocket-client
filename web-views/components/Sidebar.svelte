@@ -1,33 +1,67 @@
 <script lang="ts">
 	import { Client } from '@stomp/stompjs';
 	import SockJs from 'sockjs-client';
+	import { onMount } from 'svelte';
 	import Log from './Log.svelte';
 
-	let url = 'http://localhost:8080/chat';
+	let url: string;
 	// let url = 'wss://echo.websocket.org';
-	let status: 'not-connected' | 'connected' | 'error' = 'not-connected';
+	let status: 'not-connected' | 'connected' | 'error' | 'loading';
 	$: connected = status === 'connected';
-	let toSend = '';
+	let toSend: string;
 	let messages: { msg: string; sent: boolean }[] = [];
 
-	let useSockJs = true;
+	let useSockJs: boolean;
+	let useStompJs: boolean;
 	let stompClient: Client;
 	let socket: WebSocket;
-	// sockJS
-	let chatUrl = '/app/chat/123';
-	let subscribeUrl = '/topic/messages/123';
+	// Stomp-JS
+	let chatUrl: string;
+	let subscribeUrl: string;
 
-	const connectSockJs = () => {
+	// state
+	$: {
+		// socket and StompClient are saved on connect
+		if (url != undefined) {
+			const state = {
+				url,
+				useSockJs,
+				useStompJs,
+				status,
+				chatUrl,
+				subscribeUrl,
+			};
+			tsVscode.setState(state);
+		}
+	}
+	onMount(() => {
+		const state = tsVscode.getState();
+		console.log(state);
+
+		url = state?.url ?? 'http://localhost:8080/chat';
+		status = state?.status ?? 'not-connected';
+		useSockJs = state?.useSockJs ?? true;
+		useStompJs = state?.useStompJs ?? true;
+		chatUrl = state?.chatUrl ?? '/app/chat/123';
+		subscribeUrl = state?.subscribeUrl ?? '/topic/messages/123';
+		if (status == 'connected') {
+			handleConnect();
+		}
+	});
+
+	const connectSTOMP = () => {
 		stompClient = new Client({
-			webSocketFactory: () => {
-				try {
-					return new SockJs(url);
-				} catch (error) {
-					tsVscode.postMessage({ type: 'onError', value: error.message });
-				}
+			brokerURL: url,
+			debug: function (str) {
+				console.log(str);
 			},
+			reconnectDelay: 5000,
+			heartbeatIncoming: 4000,
+			heartbeatOutgoing: 4000,
 		});
+
 		stompClient.onStompError = e => {
+			status = 'error';
 			tsVscode.postMessage({ type: 'onError', value: 'STOMP Error' });
 		};
 
@@ -42,12 +76,31 @@
 			status = 'connected';
 		};
 
+		stompClient.onWebSocketClose = () => {
+			status = status == 'loading' ? 'error' : 'not-connected';
+			if (status == 'not-connected') {
+				stompClient.deactivate();
+			}
+		};
+
+		// sockJs code
+		if (useSockJs) {
+			stompClient.webSocketFactory = () => {
+				try {
+					return new SockJs(url) as any;
+				} catch (error) {
+					tsVscode.postMessage({ type: 'onError', value: error.message });
+				}
+			};
+		}
+
 		stompClient.activate();
 	};
 
 	const connectWebSocket = () => {
 		try {
 			socket = new WebSocket(url);
+			console.log(socket);
 		} catch (error) {
 			tsVscode.postMessage({ type: 'onError', value: error.message });
 		}
@@ -57,29 +110,33 @@
 		socket.onerror = e => {
 			status = 'error';
 		};
+		socket.onclose = e => {
+			status = status == 'loading' ? 'error' : 'not-connected';
+		};
 		socket.onmessage = e => {
 			messages = [{ msg: e.data, sent: false }, ...messages];
 		};
 	};
 
 	const handleConnect = () => {
-		if (useSockJs) {
-			return connectSockJs();
+		status = 'loading';
+		if (useStompJs) {
+			return connectSTOMP();
 		}
 		connectWebSocket();
 	};
 
 	const handleDisconnect = () => {
 		status = 'not-connected';
-		if (!useSockJs) {
-			socket?.close();
+		if (useStompJs) {
+			stompClient.deactivate();
 			return;
 		}
-		stompClient.deactivate();
+		socket?.close();
 	};
 
 	const handleSend = () => {
-		if (!useSockJs) {
+		if (!useStompJs) {
 			socket?.send(toSend);
 		} else {
 			stompClient.publish({
@@ -98,14 +155,20 @@
 <template>
 	<div>
 		<label class="container">
-			<input type="checkbox" bind:checked={useSockJs} />
-			Use SockJs-client + STOMPjs
+			<input type="checkbox" bind:checked={useStompJs} />
+			Use STOMPjs
 		</label>
+		{#if useStompJs}
+			<label class="container">
+				<input type="checkbox" bind:checked={useSockJs} />
+				Use SockJs-client
+			</label>
+		{/if}
 		<label class="label">
 			URL:
 			<input bind:value={url} disabled={connected} />
 		</label>
-		{#if useSockJs}
+		{#if useStompJs}
 			<p>STOMP info :</p>
 			<label>
 				subscribe Path
