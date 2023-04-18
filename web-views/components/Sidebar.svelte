@@ -114,7 +114,13 @@
 			status = status == 'loading' ? 'error' : 'not-connected';
 		};
 		socket.onmessage = async e => {
-			messages = [...messages, { msg: await deserialize(e.data), sent: false }];
+			let deserializedMessage = e.data;
+			try {
+				deserializedMessage = await deserialize(e.data);
+			} catch(error: any) {
+				tsVscode.postMessage({ type: 'onError', value: 'Failed to deserialize message: '+error.message });
+			}
+			messages = [...messages, { msg: deserializedMessage, sent: false }];
 		};
 	};
 
@@ -144,16 +150,21 @@
 	}
 
 	const handleSend = async () => {
-		if (!useStompJs) {
-			socket?.send(await serialize(toSend));
-		} else {
-			stompClient.publish({
-				destination: chatUrl,
-				body: toSend,
-			});
+		try {
+			const serializedMessage = await serialize(toSend);
+			if (!useStompJs) {
+				socket?.send(serializedMessage);
+			} else {
+				stompClient.publish({
+					destination: chatUrl,
+					body: serializedMessage,
+				});
+			}
+			messages = [...messages, { msg: toSend, sent: true }];
+			toSend = '';
+		} catch(error: any) {
+			tsVscode.postMessage({ type: 'onError', value: 'Failed to serialize message: '+error.message });
 		}
-		messages = [...messages, { msg: toSend, sent: true }];
-		toSend = '';
 	};
 
 	const handleClear = () => {
@@ -161,14 +172,12 @@
 	};
 
 	async function serialize(text: string): Promise<any> {
-		return text;
 		const response = await postRequest({type: 'getSerializer', value: ''});
 		const serializerFn = eval(response);
 		return serializerFn(text);
 	}
 
 	async function deserialize(data: any): Promise<string> {
-		return data;
 		const response = await postRequest({type: 'getDeserializer', value: ''});
 		const deserializerFn = eval(response);
 		return deserializerFn(data);
@@ -177,13 +186,13 @@
 	function postRequest(msg: { type: string; value: string }): Promise<string> {
 		return new Promise((resolve, _reject) => {
 			const listener = (evt: MessageEvent) => {
-				console.log(msg, evt);
 				if(evt.data.type == msg.type+'Response') {
 					window.removeEventListener('message', listener);
 					resolve(evt.data.value);
 				}
 			}
 			window.addEventListener('message', listener);
+			tsVscode.postMessage(msg);
 		})
 	}
 </script>
@@ -236,6 +245,7 @@
 		display: flex;
 		flex-direction: column;
 		flex: 1 1 auto;
+		overflow: auto;
 	}
 
 	.container {
@@ -264,5 +274,9 @@
 	}
 	.error {
 		color: tomato;
+	}
+
+	textarea {
+		min-height: 2em;
 	}
 </style>
