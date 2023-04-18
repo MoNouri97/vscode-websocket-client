@@ -10,8 +10,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 	public resolveWebviewView(webviewView: vscode.WebviewView) {
 		this._view = webviewView;
 
-		const config = vscode.workspace.getConfiguration();
-
 		webviewView.webview.options = {
 			// Allow scripts in the webview
 			enableScripts: true,
@@ -38,9 +36,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 					break;
 				}
 				case 'getSerializer': {
+					const config = vscode.workspace.getConfiguration();
 					webviewView.webview.postMessage({type: 'getSerializerResponse', value: config.get("websocketClient.serializer")});
 				}
 				case 'getDeserializer': {
+					const config = vscode.workspace.getConfiguration();
 					webviewView.webview.postMessage({type: 'getDeserializerResponse', value: config.get("websocketClient.deserializer")});
 				}
 			}
