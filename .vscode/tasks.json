@@ -28,6 +28,11 @@
 				"reveal": "never"
 			},
 			"group": "build"
+		},
+		{
+			"type": "npm",
+			"script": "package",
+			"problemMatcher": "$tsc"
 		}
 	]
 }
