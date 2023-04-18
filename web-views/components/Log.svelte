@@ -1,7 +1,17 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { afterUpdate, createEventDispatcher } from "svelte";
 
 	export let messages: { msg: string; sent: boolean }[];
+
+	let messagesDiv: HTMLDivElement;
+
+	afterUpdate(() => {
+		(messagesDiv?.lastChild as HTMLElement)?.scrollIntoView({
+			behavior: "smooth",
+			block: "end",
+			inline: "end"
+		});
+	})
 
 	const dispatch = createEventDispatcher();
 
@@ -24,7 +34,7 @@
 
 <template>
 	<button on:click={handleClear}>Clear Log</button>
-	<div class="messages">
+	<div bind:this={messagesDiv} class="messages">
 		{#each messages as { msg, sent }}
 			<div class="message" class:sent>
 				<pre>{sent ? 'SENT' : 'RECEIVED'}</pre>
@@ -41,7 +51,8 @@
 		flex: 1 1 auto;
 		display: flex;
 		flex-direction: column;
-		margin: 1em 0 1em 0
+		margin: 1em 0 1em 0;
+		font-family: Menlo, Consolas, Monaco, Liberation Mono, Lucida Console, monospace;
 	}
 
 	.message {
@@ -55,15 +66,18 @@
 	.message pre {
 		margin: 0;
 		color: #999;
+		font-size: xx-small;
 	}
 	.message:not(.sent) {
 		background: rgba(128, 128, 128, 0.1);
 		text-align: start;
 		align-self: flex-start;
+		margin-right: 1em;
 	}
 	.message.sent {
 		background: rgba(128, 128, 128, 0.3);
 		text-align: end;
 		align-self: flex-end;
+		margin-left: 1em;
 	}
 </style>
