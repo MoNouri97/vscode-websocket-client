@@ -9,7 +9,7 @@
 	"description": "Testing Websocket (SockJs + stompjs) Connections Using VsCode",
 	"version": "0.1.0",
 	"engines": {
-		"vscode": "^1.55.0"
+		"vscode": "^1.77.0"
 	},
 	"categories": [
 		"Other"
@@ -38,6 +38,21 @@
 					"contextualTitle": "WebSocket"
 				}
 			]
+		},
+		"configuration": {
+			"title": "WebSocket Client",
+			"properties": {
+				"websocketClient.serializer": {
+					"type": "string",
+					"description": "Function to serialize outgoing messages",
+					"default": "(text) => text"
+				},
+				"websocketClient.deserializer": {
+					"type": "string",
+					"description": "Function to deserialize incoming messages",
+					"default": "(data) => data"
+				}
+			}
 		}
 	},
 	"scripts": {
@@ -47,36 +62,36 @@
 		"package": "rollup -c && webpack --mode production --devtool hidden-source-map"
 	},
 	"devDependencies": {
-		"@rollup/plugin-commonjs": "^18.0.0",
+		"@rollup/plugin-commonjs": "^18.1.0",
 		"@rollup/plugin-node-resolve": "^11.2.1",
 		"@rollup/plugin-replace": "^2.4.2",
-		"@rollup/plugin-typescript": "^8.2.1",
-		"@tsconfig/svelte": "^1.0.10",
-		"@types/glob": "^7.1.3",
-		"@types/mocha": "^8.0.4",
-		"@types/node": "^12.11.7",
-		"@types/sockjs-client": "^1.5.0",
-		"@types/vscode": "^1.55.0",
-		"@typescript-eslint/eslint-plugin": "^4.14.1",
-		"@typescript-eslint/parser": "^4.14.1",
-		"concurrently": "^6.0.2",
-		"eslint": "^7.19.0",
-		"glob": "^7.1.6",
-		"mocha": "^8.2.1",
-		"rollup": "^2.3.4",
-		"rollup-plugin-svelte": "^6.0.0",
+		"@rollup/plugin-typescript": "^8.5.0",
+		"@tsconfig/svelte": "^1.0.13",
+		"@types/glob": "^7.2.0",
+		"@types/mocha": "^8.2.3",
+		"@types/node": "^12.20.55",
+		"@types/sockjs-client": "^1.5.1",
+		"@types/vscode": "^1.77.0",
+		"@typescript-eslint/eslint-plugin": "^4.33.0",
+		"@typescript-eslint/parser": "^4.33.0",
+		"concurrently": "^6.5.1",
+		"eslint": "^7.32.0",
+		"glob": "^7.2.3",
+		"mocha": "^8.4.0",
+		"rollup": "^2.79.1",
+		"rollup-plugin-svelte": "^6.1.1",
 		"rollup-plugin-terser": "^7.0.2",
-		"svelte": "^3.38.1",
-		"svelte-check": "^1.5.2",
-		"svelte-preprocess": "^4.7.3",
-		"ts-loader": "^8.0.14",
-		"typescript": "^4.1.3",
-		"vscode-test": "^1.5.0",
-		"webpack": "^5.19.0",
-		"webpack-cli": "^4.4.0"
+		"svelte": "^3.58.0",
+		"svelte-check": "^1.6.0",
+		"svelte-preprocess": "^4.10.7",
+		"ts-loader": "^8.4.0",
+		"typescript": "^4.9.5",
+		"vscode-test": "^1.6.1",
+		"webpack": "^5.79.0",
+		"webpack-cli": "^4.10.0"
 	},
 	"dependencies": {
-		"@stomp/stompjs": "^6.1.0",
-		"sockjs-client": "^1.5.1"
+		"@stomp/stompjs": "^6.1.2",
+		"sockjs-client": "^1.6.1"
 	}
 }
