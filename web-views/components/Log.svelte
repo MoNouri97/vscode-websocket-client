@@ -1,5 +1,9 @@
 <script lang="ts">
+  import { createEventDispatcher } from "svelte";
+
 	export let messages: { msg: string; sent: boolean }[];
+
+	const dispatch = createEventDispatcher();
 
 	const print = (s: string): string => {
 		let obj;
@@ -12,30 +16,54 @@
 		}
 		return ret;
 	};
+
+	const handleClear = (evt: Event) => {
+		dispatch('clear', evt);
+	}
 </script>
 
 <template>
-	<p class="label">Log:</p>
+	<button on:click={handleClear}>Clear Log</button>
 	<div class="messages">
 		{#each messages as { msg, sent }}
-			<pre class:sent>
-				{`${sent ? 'SENT:' : 'RECEIVED'}\n${print(msg)}`}
-			</pre>
+			<div class="message" class:sent>
+				<pre>{sent ? 'SENT' : 'RECEIVED'}</pre>
+				{print(msg)}
+			</div>
 		{/each}
 	</div>
 </template>
 
 <style>
 	.messages {
+		width: 100%;
 		overflow-y: scroll;
+		flex: 1 1 auto;
+		display: flex;
+		flex-direction: column;
+		margin: 1em 0 1em 0
 	}
-	.messages pre {
-		padding: 1rem;
+
+	.message {
+		width: fit-content;
+		min-width: 6em;
+		margin: .25em 0 .25em 0;
+		padding: 1em;
+		border-radius: 1em;
 	}
-	.messages pre:not(.sent) {
+
+	.message pre {
+		margin: 0;
+		color: #999;
+	}
+	.message:not(.sent) {
 		background: rgba(128, 128, 128, 0.1);
+		text-align: start;
+		align-self: flex-start;
 	}
-	.sent {
+	.message.sent {
 		background: rgba(128, 128, 128, 0.3);
+		text-align: end;
+		align-self: flex-end;
 	}
 </style>

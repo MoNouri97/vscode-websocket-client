@@ -10,6 +10,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 	public resolveWebviewView(webviewView: vscode.WebviewView) {
 		this._view = webviewView;
 
+		const config = vscode.workspace.getConfiguration();
+
 		webviewView.webview.options = {
 			// Allow scripts in the webview
 			enableScripts: true,
@@ -34,6 +36,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 					}
 					vscode.window.showErrorMessage(data.value);
 					break;
+				}
+				case 'getSerializer': {
+					webviewView.webview.postMessage({type: 'getSerializerResponse', value: config.get("websocketClient.serializer")});
+				}
+				case 'getDeserializer': {
+					webviewView.webview.postMessage({type: 'getDeserializerResponse', value: config.get("websocketClient.deserializer")});
 				}
 			}
 		});
@@ -68,7 +76,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 					Use a content security policy to only allow loading images from https or from our extension directory,
 					and only allow scripts that have a specific nonce.
         -->
-        <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'nonce-${nonce}';">
+        <meta http-equiv="Content-Security-Policy" content="img-src https: data:; style-src 'unsafe-inline' ${webview.cspSource}; script-src 'unsafe-eval' 'nonce-${nonce}';">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<link href="${styleResetUri}" rel="stylesheet">
 				<link href="${styleVSCodeUri}" rel="stylesheet">

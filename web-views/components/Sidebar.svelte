@@ -88,7 +88,7 @@
 			stompClient.webSocketFactory = () => {
 				try {
 					return new SockJs(url) as any;
-				} catch (error) {
+				} catch (error: any) {
 					tsVscode.postMessage({ type: 'onError', value: error.message });
 				}
 			};
@@ -101,7 +101,7 @@
 		try {
 			socket = new WebSocket(url);
 			console.log(socket);
-		} catch (error) {
+		} catch (error: any) {
 			tsVscode.postMessage({ type: 'onError', value: error.message });
 		}
 		socket.onopen = e => {
@@ -113,8 +113,8 @@
 		socket.onclose = e => {
 			status = status == 'loading' ? 'error' : 'not-connected';
 		};
-		socket.onmessage = e => {
-			messages = [{ msg: e.data, sent: false }, ...messages];
+		socket.onmessage = async e => {
+			messages = [...messages, { msg: await deserialize(e.data), sent: false }];
 		};
 	};
 
@@ -135,25 +135,61 @@
 		socket?.close();
 	};
 
-	const handleSend = () => {
+	// Enter: Send message, Shift+Enter: New line
+	const onToSendTextAreaKeyUp = (evt: KeyboardEvent) => {
+		if(evt.key == 'Enter' && !evt.shiftKey) {
+            handleSend();
+            evt.preventDefault();
+        }
+	}
+
+	const handleSend = async () => {
 		if (!useStompJs) {
-			socket?.send(toSend);
+			socket?.send(await serialize(toSend));
 		} else {
 			stompClient.publish({
 				destination: chatUrl,
 				body: toSend,
 			});
 		}
-		messages = [{ msg: toSend, sent: true }, ...messages];
+		messages = [...messages, { msg: toSend, sent: true }];
 		toSend = '';
 	};
+
 	const handleClear = () => {
 		messages = [];
 	};
+
+	async function serialize(text: string): Promise<any> {
+		return text;
+		const response = await postRequest({type: 'getSerializer', value: ''});
+		const serializerFn = eval(response);
+		return serializerFn(text);
+	}
+
+	async function deserialize(data: any): Promise<string> {
+		return data;
+		const response = await postRequest({type: 'getDeserializer', value: ''});
+		const deserializerFn = eval(response);
+		return deserializerFn(data);
+	}
+
+	function postRequest(msg: { type: string; value: string }): Promise<string> {
+		return new Promise((resolve, _reject) => {
+			const listener = (evt: MessageEvent) => {
+				console.log(msg, evt);
+				if(evt.data.type == msg.type+'Response') {
+					window.removeEventListener('message', listener);
+					resolve(evt.data.value);
+				}
+			}
+			window.addEventListener('message', listener);
+		})
+	}
 </script>
 
 <template>
-	<div>
+	<div id="sidebar">
 		<label class="container">
 			<input type="checkbox" bind:checked={useStompJs} />
 			Use STOMPjs
@@ -187,16 +223,21 @@
 
 		<p class={status}>status: {status}</p>
 
-		<p class="label">Message:</p>
-		<textarea bind:value={toSend} disabled={!connected} />
+		<Log on:clear={handleClear} {messages} />
+		
+		<textarea bind:value={toSend} on:keyup={onToSendTextAreaKeyUp} disabled={!connected} />
 		<button on:click={handleSend} disabled={!connected}>Send</button>
 
-		<button on:click={handleClear}>Clear Log</button>
-		<Log {messages} />
 	</div>
 </template>
 
 <style>
+	#sidebar {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 auto;
+	}
+
 	.container {
 		display: flex;
 		align-items: center;
@@ -208,7 +249,7 @@
 		top: 5px;
 		margin-right: 5px;
 	}
-	div * {
+	div label {
 		margin-bottom: 1rem;
 	}
 
