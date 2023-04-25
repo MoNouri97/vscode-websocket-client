@@ -47,6 +47,7 @@
 <style>
 	.messages {
 		width: 100%;
+		overflow-wrap: anywhere;
 		overflow-y: scroll;
 		flex: 1 1 auto;
 		display: flex;
