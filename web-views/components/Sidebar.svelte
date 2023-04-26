@@ -142,7 +142,7 @@
 	};
 
 	// Enter: Send message, Shift+Enter: New line
-	const onToSendTextAreaKeyUp = (evt: KeyboardEvent) => {
+	const onToSendTextAreaKeyDown = (evt: KeyboardEvent) => {
 		if(evt.key == 'Enter' && !evt.shiftKey) {
             handleSend();
             evt.preventDefault();
@@ -234,7 +234,7 @@
 
 		<Log on:clear={handleClear} {messages} />
 		
-		<textarea bind:value={toSend} on:keyup={onToSendTextAreaKeyUp} disabled={!connected} />
+		<textarea bind:value={toSend} on:keydown={onToSendTextAreaKeyDown} disabled={!connected} />
 		<button on:click={handleSend} disabled={!connected}>Send</button>
 
 	</div>
