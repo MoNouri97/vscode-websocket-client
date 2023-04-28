@@ -3,13 +3,14 @@
 	import SockJs from 'sockjs-client';
 	import { onMount } from 'svelte';
 	import Log from './Log.svelte';
+	import { MessageType } from '../types';
 
 	let url: string;
 	// let url = 'wss://echo.websocket.org';
 	let status: 'not-connected' | 'connected' | 'error' | 'loading';
 	$: connected = status === 'connected';
 	let toSend: string;
-	let messages: { msg: string; sent: boolean }[] = [];
+	let messages: { msg: string; type: MessageType }[] = [];
 
 	let useSockJs: boolean;
 	let useStompJs: boolean;
@@ -70,7 +71,7 @@
 				subscribeUrl,
 				// `/user/${user.username}/queue/messages`,
 				payload => {
-					messages = [{ msg: payload.body, sent: false }, ...messages];
+					messages = [{ msg: payload.body, type: MessageType.Received }, ...messages];
 				},
 			);
 			status = 'connected';
@@ -106,12 +107,15 @@
 		}
 		socket.onopen = e => {
 			status = 'connected';
+			messages = [...messages, { msg: 'Socket opened', type: MessageType.Status }];
 		};
 		socket.onerror = e => {
 			status = 'error';
+			messages = [...messages, { msg: 'Socket error', type: MessageType.Status }];
 		};
 		socket.onclose = e => {
 			status = status == 'loading' ? 'error' : 'not-connected';
+			messages = [...messages, { msg: 'Socket closed', type: MessageType.Status }];
 		};
 		socket.onmessage = async e => {
 			let deserializedMessage = e.data;
@@ -120,7 +124,7 @@
 			} catch(error: any) {
 				tsVscode.postMessage({ type: 'onError', value: 'Failed to deserialize message: '+error.message });
 			}
-			messages = [...messages, { msg: deserializedMessage, sent: false }];
+			messages = [...messages, { msg: deserializedMessage, type: MessageType.Received }];
 		};
 	};
 
@@ -160,7 +164,7 @@
 					body: serializedMessage,
 				});
 			}
-			messages = [...messages, { msg: toSend, sent: true }];
+			messages = [...messages, { msg: toSend, type: MessageType.Sent }];
 			toSend = '';
 		} catch(error: any) {
 			tsVscode.postMessage({ type: 'onError', value: 'Failed to serialize message: '+error.message });

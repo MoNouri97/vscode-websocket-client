@@ -1,12 +1,13 @@
 <script lang="ts">
   import { afterUpdate, createEventDispatcher } from "svelte";
+  import { MessageType } from "../types";
 
-	export let messages: { msg: string; sent: boolean }[];
-
+	export let messages: { msg: string; type: MessageType }[];
+	let messageType = MessageType;
 	let messagesDiv: HTMLDivElement;
 
 	afterUpdate(() => {
-		(messagesDiv?.lastChild as HTMLElement)?.scrollIntoView({
+		messagesDiv?.lastElementChild?.scrollIntoView({
 			behavior: "smooth",
 			block: "end",
 			inline: "end"
@@ -35,16 +36,26 @@
 <template>
 	<button on:click={handleClear}>Clear Log</button>
 	<div bind:this={messagesDiv} class="messages">
-		{#each messages as { msg, sent }}
-			<div class="message" class:sent>
-				<pre>{sent ? 'SENT' : 'RECEIVED'}</pre>
-				{print(msg)}
-			</div>
+		{#each messages as { msg, type }}
+			{#if type == messageType.Status}
+				<div class="status">
+					{print(msg)}
+				</div>
+			{:else}
+				<div class="message" class:sent="{type == messageType.Sent}">
+					<pre>{messageType[type].toUpperCase()}</pre>
+					{print(msg)}
+				</div>
+			{/if}
 		{/each}
 	</div>
 </template>
 
 <style>
+	.status {
+		text-align: center;
+	}
+
 	.messages {
 		width: 100%;
 		overflow-wrap: anywhere;

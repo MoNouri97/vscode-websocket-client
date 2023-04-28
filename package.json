@@ -7,7 +7,7 @@
 	"name": "websocket-client",
 	"displayName": "WebSocket Client",
 	"description": "Testing Websocket (SockJs + stompjs) Connections Using VsCode",
-	"version": "0.1.0",
+	"version": "0.3.0",
 	"engines": {
 		"vscode": "^1.77.0"
 	},
