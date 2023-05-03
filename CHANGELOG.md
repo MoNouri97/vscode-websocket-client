@@ -10,3 +10,8 @@
 - Added the ability to use STOMPjs without the SockJs-Client
 - WebView state now will persist after closing the panel
   > **New Connection Is Made** the old one is lost
+  >
+
+## Version 0.3.0
+
+- Added the ability to use custom serializers and deserializers

@@ -6,27 +6,21 @@ This is my first extension and it was created to solve my testing needs so it's 
 
 ## Features
 
-### Connecting with STOMP , SockJs
-
-![feature X](images/img1.png)
-
-### Easy connecting
-
-![feature X](images/img2.png)
-
 ### Send and Receive Messages + Log
 
 ![feature X](images/img4.png)
 
+### Connecting with STOMP , SockJs
+
+![feature X](images/img1.png)
+
+### Custom de/serialization
+
+![!feature X](images/img5.png)
+
 ## Known Issues
 
-none yet , but this is not thoroughly tested
-
-## Release Notes
-
-### 0.0.1
-
-Initial release of WebSocket Client
+none yet, but this is not thoroughly tested
 
 ---
 
