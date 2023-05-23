@@ -1,12 +1,12 @@
 {
-	"publisher": "mohamed-nouri",
+	"publisher": "alborrajo",
 	"repository": {
-		"url": "https://github.com/MoNouri97/websocket-client"
+		"url": "https://github.com/alborrajo/vscode-websocket-client/"
 	},
-	"icon": "images/icon.jpg",
-	"name": "websocket-client",
-	"displayName": "WebSocket Client",
-	"description": "Testing Websocket (SockJs + stompjs) Connections Using VsCode",
+	"icon": "images/icon.png",
+	"name": "websocket-chat",
+	"displayName": "WebSocket Chat",
+	"description": "Testing Websocket (SockJs + stompjs) Connections with configurable de/serializer Using VsCode",
 	"version": "0.3.0",
 	"engines": {
 		"vscode": "^1.77.0"
@@ -40,7 +40,7 @@
 			]
 		},
 		"configuration": {
-			"title": "WebSocket Client",
+			"title": "WebSocket Chat",
 			"properties": {
 				"websocketClient.serializer": {
 					"type": "string",

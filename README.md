@@ -1,4 +1,6 @@
-# WebSocket Client
+# WebSocket Chat
+
+Fork of MoNouri97's [WebSocket Client](https://github.com/MoNouri97/vscode-websocket-client) with UI improvements and a way of specifying a custom de/serializer.
 
 A simple WebSocket Client that can be used for testing purposes , this also supports STOMP connections over SockJs (to be used with Spring-Boot for example)
 
